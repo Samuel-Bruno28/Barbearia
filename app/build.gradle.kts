@@ -46,5 +46,7 @@ dependencies {
     androidTestImplementation(libs.espresso.core)
     implementation(libs.firebase.bom)
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+    implementation("com.google.firebase:firebase-firestore:24.7.1")
+
 
 }

@@ -15,12 +15,17 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class CadastroActivity extends AppCompatActivity {
 
     private EditText etNome, etEmail, etSenha, etConfirmaSenha;
     private Button btCadastrar, btVoltarCadastro;
     private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,9 +33,8 @@ public class CadastroActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_cadastro);
 
-
         mAuth = FirebaseAuth.getInstance();
-
+        db = FirebaseFirestore.getInstance();
 
         etNome = findViewById(R.id.etNome);
         etEmail = findViewById(R.id.etEmail);
@@ -39,14 +43,12 @@ public class CadastroActivity extends AppCompatActivity {
         btCadastrar = findViewById(R.id.btCadastrar);
         btVoltarCadastro = findViewById(R.id.btVoltarCadastro);
 
-        // Botão para voltar à tela de introdução
         btVoltarCadastro.setOnClickListener(view -> {
             Intent intent = new Intent(CadastroActivity.this, IntroActivity.class);
             startActivity(intent);
             finish();
         });
 
-        // Botão para cadastrar usuário
         btCadastrar.setOnClickListener(view -> {
             String nome = etNome.getText().toString().trim();
             String email = etEmail.getText().toString().trim();
@@ -66,10 +68,16 @@ public class CadastroActivity extends AppCompatActivity {
             mAuth.createUserWithEmailAndPassword(email, senha)
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
+                            String userId = mAuth.getCurrentUser().getUid();
+                            Map<String, Object> user = new HashMap<>();
+                            user.put("nome", nome);
+
+                            db.collection("usuarios").document(userId).set(user);
+
                             Toast.makeText(CadastroActivity.this, "Cadastro realizado com sucesso!", Toast.LENGTH_SHORT).show();
                             Intent intent = new Intent(CadastroActivity.this, MainActivity.class);
                             startActivity(intent);
-                            finish(); // Encerra a tela de cadastro
+                            finish();
                         } else {
                             String mensagemTraduzida = "Erro ao cadastrar. Tente novamente.";
                             Exception exception = task.getException();
@@ -103,7 +111,6 @@ public class CadastroActivity extends AppCompatActivity {
                         }
                     });
         });
-
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
